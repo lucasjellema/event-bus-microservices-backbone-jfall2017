@@ -72,7 +72,7 @@ function validateTweet(tweet) {
      valid = false;
      reason= reason + "No fake authors (John Doe is not acceptable). ";
   }
-  if (tweet.text.indexOf("Trump ") > -1 ||tweet.text.toLowerCase().indexOf("brexit")>-1||tweet.text.toLowerCase().indexOf("elections")>-1) {
+  if (tweet.text.indexOf("Trump ") > -1 ||tweet.text.toLowerCase().indexOf("brexit")>-1||tweet.text.toLowerCase().indexOf("catalonia")>-1) {
      valid = false;
      reason= reason + "No Political Statements are condoned today. ";
   }
