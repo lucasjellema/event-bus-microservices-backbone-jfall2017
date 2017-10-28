@@ -1,0 +1,22 @@
+{
+  "name": "tweet-retriever",
+  "version": "0.0.2",
+  "description": "Node.js application that polls TweetCollector for new tweets and when any are found, posts them to TweetReceiver",
+  "main": "TweetRetriever.js",
+  "scripts": {
+     "start": "node TweetRetriever.js"
+ ,    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node",
+    "js",
+    "poll"
+  ],
+  "author": "Lucas Jellema",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.16.1",
+    "express": "^4.13.4",
+    "request": "^2.81.0"
+  }
+}

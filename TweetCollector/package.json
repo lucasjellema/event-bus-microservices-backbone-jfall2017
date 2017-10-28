@@ -1,0 +1,23 @@
+{
+  "name": "tweet-collector",
+  "version": "0.0.2",
+  "description": "Node.js application that accepts GET requests with Tweet, creates a collection of the tweets and makes the collection available as JSON document to GET requests",
+  "main": "TweetCollector.js",
+  "scripts": {
+     "start": "node TweetCollector.js"
+ ,    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "kafka",
+    "node",
+    "js",
+    "produce"
+  ],
+  "author": "Lucas Jellema",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.16.1",
+    "express": "^4.13.4",
+    "request": "^2.81.0"
+  }
+}
