@@ -17,11 +17,11 @@ spec:
     - name: APP_PORT
       value: "8103"
     - name: APP_HOME
-      value: "part4/TweetEnricher"
+      value: "TweetEnricher"
     - name: APP_STARTUP
       value: "TweetEnricher.js"
     - name: KAFKA_HOST
-      value: "ubuntu"
+      value: "192.168.188.102"
     - name: ZOOKEEPER_PORT
       value: "2181"
     - name: KAFKA_TOPIC
@@ -33,8 +33,4 @@ spec:
     ports:
     # containerPort is the port exposed by the container (where nodejs express api is listening)
     - containerPort: 8103
-    lifecycle:
-      postStart:
-        exec:
-          # add advertised host (ubuntu) of VM running Kafka to hosts file - with that VMs network interface's IP address
-          command: ["sh","-c","echo 192.168.188.101 ubuntu > /etc/hosts"]
+    

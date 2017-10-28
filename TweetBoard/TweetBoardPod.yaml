@@ -17,11 +17,11 @@ spec:
     - name: APP_PORT
       value: "8104"
     - name: APP_HOME
-      value: "part4/TweetBoard"
+      value: "TweetBoard"
     - name: APP_STARTUP
       value: "TweetBoard.js"
     - name: KAFKA_HOST
-      value: "ubuntu"
+      value: "192.168.188.102"
     - name: ZOOKEEPER_PORT
       value: "2181"
     - name: KAFKA_TOPIC

@@ -17,7 +17,7 @@ spec:
     - name: APP_PORT
       value: "8109"
     - name: APP_HOME
-      value: "part4/CacheInspector"
+      value: "CacheInspector"
     - name: APP_STARTUP
       value: "CacheInspector.js"
     - name: REDIS_HOST

@@ -10,7 +10,7 @@ var APP_NAME = "TweetReceiver"
 var workflowEventsTopic = process.env.KAFKA_TOPIC ||"workflowEvents";
 
 var moduleName = "TweetReceiver";
-
+  
 console.log("Running " + APP_NAME + "version " + APP_VERSION);
 
 
