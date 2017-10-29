@@ -35,7 +35,7 @@ function handleWorkflowEvent(eventMessage) {
 
       console.log("Workflow template retrieved from cache under key "+workflowTemplateCacheKey);
       // use either the template retrieved from the cache of the default template if the cache retrieval failed
-      var message = (value.workflowType)? value.document : defaultMessage;
+      var message = (value.workflowType)? value : defaultMessage;
       message.payload = event.tweet;
       message.workflowConversationIdentifier = "OracleCodeTweetProcessor" + new Date().getTime();
       message.audit.push({ "when": new Date().getTime(), "who": "WorkflowLauncher", "what": "creation", "comment": "initial creation of workflow" })
@@ -60,8 +60,7 @@ function handleWorkflowEvent(eventMessage) {
 
 }// handleWorkflowEvent
 
-
-defaultMessage =
+var defaultMessage =
   {
     "workflowType": "oracle-code-tweet-processor"
     , "workflowVersion": "0.9"
