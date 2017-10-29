@@ -27,9 +27,9 @@ function handleWorkflowEvent(eventMessage) {
   if ("NewTweetEvent" == eventMessage.key) {
     console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
     localCacheAPI.getFromCache(workflowTemplateCacheKey, function (value) {
-      console.log("Workflow template retrieved from cache");
+      console.log("Workflow template retrieved from cache under key "+workflowTemplateCacheKey);
       // use either the template retrieved from the cache of the default template if the cache retrieval failed
-      var message = (value.document && value.document.workflowType=="oracle-code-tweet-processor")? value.document : defaultMessage;
+      var message = (value.document)? value.document : defaultMessage;
       message.payload = event.tweet;
       message.workflowConversationIdentifier = "OracleCodeTweetProcessor" + new Date().getTime();
       message.audit.push({ "when": new Date().getTime(), "who": "WorkflowLauncher", "what": "creation", "comment": "initial creation of workflow" })
@@ -40,7 +40,7 @@ function handleWorkflowEvent(eventMessage) {
       localLoggerAPI.log("Initialized new workflow  for tweet " + message.payload.text + " by " + message.payload.author + " - (workflowConversationIdentifier:" + message.workflowConversationIdentifier + ")"
         , APP_NAME, "info");
       localLoggerAPI.log("Initialized new workflow OracleCodeTweetProcessor triggered by NewTweetEvent; stored workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + " - (workflowConversationIdentifier:"
-        + message.workflowConversationIdentifier + ")"
+        + message.workflowConversationIdentifier + "based on workflow template "+message.workflowType+" version "+message.workflowVersion+")"
         , APP_NAME, "info");
 
 
@@ -58,7 +58,7 @@ function handleWorkflowEvent(eventMessage) {
 defaultMessage =
   {
     "workflowType": "oracle-code-tweet-processor"
-    , "workflowVersion": "1.0"
+    , "workflowVersion": "0.9"
     , "creator": "WorkflowLauncher"
     , "actions":
     [{
