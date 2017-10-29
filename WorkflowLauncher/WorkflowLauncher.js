@@ -11,6 +11,7 @@ var workflowEventsTopic = "workflowEvents";
 var APP_VERSION = "0.9.1"
 var APP_NAME = "WorkflowLauncher"
 
+var workflowTemplateCacheKey = "oracle-code-tweet-processor-workflow-template";
 
 eventBusConsumer.registerEventHandler(workflowEventsTopic, handleWorkflowEvent);
 
@@ -25,7 +26,7 @@ function handleWorkflowEvent(eventMessage) {
   console.log("received message", eventMessage);
   if ("NewTweetEvent" == eventMessage.key) {
     console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
-    localCacheAPI.getFromCache(event.workflowConversationIdentifier, function (value) {
+    localCacheAPI.getFromCache(workflowTemplateCacheKey, function (value) {
       console.log("Workflow template retrieved from cache");
       // use either the template retrieved from the cache of the default template if the cache retrieval failed
       var message = (value.document && value.document.workflowType=="oracle-code-tweet-processor")? value.document : defaultMessage;
