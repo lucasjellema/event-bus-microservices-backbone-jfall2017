@@ -26,7 +26,13 @@ function handleWorkflowEvent(eventMessage) {
   console.log("received message", eventMessage);
   if ("NewTweetEvent" == eventMessage.key) {
     console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
+
     localCacheAPI.getFromCache(workflowTemplateCacheKey, function (value) {
+    
+      localLoggerAPI.log("Retrieved workflowTemplate from cache under key  " + workflowTemplateCacheKey
+       +" content:"+ JSON.stringify(value)
+      , APP_NAME, "info");
+
       console.log("Workflow template retrieved from cache under key "+workflowTemplateCacheKey);
       // use either the template retrieved from the cache of the default template if the cache retrieval failed
       var message = (value.document)? value.document : defaultMessage;
@@ -40,7 +46,7 @@ function handleWorkflowEvent(eventMessage) {
       localLoggerAPI.log("Initialized new workflow  for tweet " + message.payload.text + " by " + message.payload.author + " - (workflowConversationIdentifier:" + message.workflowConversationIdentifier + ")"
         , APP_NAME, "info");
       localLoggerAPI.log("Initialized new workflow OracleCodeTweetProcessor triggered by NewTweetEvent; stored workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + " - (workflowConversationIdentifier:"
-        + message.workflowConversationIdentifier + "based on workflow template "+message.workflowType+" version "+message.workflowVersion+")"
+        + message.workflowConversationIdentifier + "; slip is based on workflow template "+message.workflowType+" version "+message.workflowVersion+")"
         , APP_NAME, "info");
 
 
