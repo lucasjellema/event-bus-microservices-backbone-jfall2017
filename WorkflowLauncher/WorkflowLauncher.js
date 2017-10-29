@@ -8,7 +8,7 @@ var workflowEventsTopic = "workflowEvents";
 // please create Kafka Topic before using this application in the VM running Kafka
 // kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic workflowEvents
 
-var APP_VERSION = "0.8"
+var APP_VERSION = "0.9.1"
 var APP_NAME = "WorkflowLauncher"
 
 
@@ -19,37 +19,45 @@ console.log("Running " + APP_NAME + " version " + APP_VERSION);
 
 
 // consume local workflowEvents from Kafka and produce RoutingSlip events for new workflow instances triggered by these events
+// Routingslip is based on the workflow template retrieved from the cache
 function handleWorkflowEvent(eventMessage) {
   var event = JSON.parse(eventMessage.value);
   console.log("received message", eventMessage);
   if ("NewTweetEvent" == eventMessage.key) {
     console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
-    message.payload = event.tweet;
-    message.workflowConversationIdentifier = "OracleCodeTweetProcessor" + new Date().getTime();
-    eventBusPublisher.publishEvent(message.workflowConversationIdentifier, message, workflowEventsTopic);
+    localCacheAPI.getFromCache(event.workflowConversationIdentifier, function (value) {
+      console.log("Workflow template retrieved from cache");
+      // use either the template retrieved from the cache of the default template if the cache retrieval failed
+      var message = (value.document && value.document.workflowType=="oracle-code-tweet-processor")? value.document : defaultMessage;
+      message.payload = event.tweet;
+      message.workflowConversationIdentifier = "OracleCodeTweetProcessor" + new Date().getTime();
+      message.audit.push({ "when": new Date().getTime(), "who": "WorkflowLauncher", "what": "creation", "comment": "initial creation of workflow" })
+      message.creationTimeStamp = new Date().getTime()
+      message.creator = "WorkflowLauncher";
+      eventBusPublisher.publishEvent(message.workflowConversationIdentifier, message, workflowEventsTopic);
 
-    localLoggerAPI.log("Initialized new workflow  for tweet "+message.payload.text+" by "+ message.payload.author +" - (workflowConversationIdentifier:" + message.workflowConversationIdentifier + ")"
+      localLoggerAPI.log("Initialized new workflow  for tweet " + message.payload.text + " by " + message.payload.author + " - (workflowConversationIdentifier:" + message.workflowConversationIdentifier + ")"
         , APP_NAME, "info");
-    localLoggerAPI.log("Initialized new workflow OracleCodeTweetProcessor triggered by NewTweetEvent; stored workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + " - (workflowConversationIdentifier:"
-      + message.workflowConversationIdentifier + ")"
-      , APP_NAME, "info");
+      localLoggerAPI.log("Initialized new workflow OracleCodeTweetProcessor triggered by NewTweetEvent; stored workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + " - (workflowConversationIdentifier:"
+        + message.workflowConversationIdentifier + ")"
+        , APP_NAME, "info");
 
 
-    // PUT Workflow Event in Cache under workflow event identifier
-    localCacheAPI.putInCache(message.workflowConversationIdentifier, message,
-      function (result) {
-        console.log("store workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + ": " + JSON.stringify(result));
-      });
+      // PUT Workflow Event in Cache under workflow event identifier
+      localCacheAPI.putInCache(message.workflowConversationIdentifier, message,
+        function (result) {
+          console.log("store workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + ": " + JSON.stringify(result));
+        });
+      }) //getFromCache
   }//if 
 
 }// handleWorkflowEvent
 
 
-message =
+defaultMessage =
   {
     "workflowType": "oracle-code-tweet-processor"
-    , "workflowConversationIdentifier": "oracle-code-tweet-processor" + new Date().getTime()
-    , "creationTimeStamp": new Date().getTime()
+    , "workflowVersion": "1.0"
     , "creator": "WorkflowLauncher"
     , "actions":
     [{
