@@ -9,7 +9,7 @@ var eventBusConsumer = require("./EventConsumer.js");
 
 var workflowEventsTopic = "workflowEvents";
 var PORT = process.env.APP_PORT || 8098;
-var APP_VERSION = "0.26"
+var APP_VERSION = "0.27"
 var APP_NAME = "TweetEnricher"
 
 var TweetEnricherActionType = "EnrichTweet";
@@ -59,6 +59,19 @@ app.post('/tweet', function (req, res) {
 
 function enrich(tweet) {
   console.log("enrich tweet " + JSON.stringify(tweet));
+  // enrichment - spell out acronyms
+  // nljug (aka Dutch Java User Group)
+  // JSON (aka JavaScript Object Notation)
+  // API (aka Application Programmatic Interface)
+  // CQRS (aka Command Query Responsibility Segragation)
+  // Ede (Gelderland, The Netherlands)
+  var enrichments = [ 
+     {"original":" nljug ","replacement":" nljug (aka Dutch Java User Group) "  }
+    ,{"original":" JSON ","replacement":" JSON (aka JavaScript Object Notation) "  }
+    ,{"original":" Ede ","replacement":" Ede (Gelderland, The Netherlands) "  }
+    ];
+  enrichments.forEach((val)=> { tweet.text= tweet.text.replace(new RegExp(val.original, 'ig'), val.replacement)})
+  
   tweet.enrichment = "Lots of Money";
   tweet.extraEnrichment = "Even more loads of money, gold, diamonds and even some spiritual enrichment";
   return tweet;
