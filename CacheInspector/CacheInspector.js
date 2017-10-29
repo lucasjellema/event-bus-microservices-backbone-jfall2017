@@ -5,7 +5,7 @@ var http = require('http'),
 var localCacheAPI = require("./local-cache-api.js");
 
 var PORT = process.env.APP_PORT || 8097;
-var APP_VERSION = "0.8"
+var APP_VERSION = "0.8.1"
 var APP_NAME = "CacheInspector"
 
 
@@ -26,6 +26,7 @@ app.get('/about', function (req, res) {
   res.write("Supported URLs:");
   res.write("/ping (GET)\n;");
   res.write("/cacheEntry?key=cacheKey (GET)");
+  res.write("/cacheEntry (POST)");
   res.write("NodeJS runtime version " + process.version);
   res.write("incoming headers" + JSON.stringify(req.headers));
   res.end();
@@ -56,3 +57,20 @@ app.get('/cacheEntry', function (req, res) {
     });
   }
 });
+
+
+app.post('/cacheEntry', function (req, res) {
+ // Get the key and value
+ console.log('CacheInspector - put cache entry');
+ console.log('body in request' + JSON.stringify(req.body));
+ console.log("content type " + req.headers['content-type']);
+ var key = req.body.key;
+ var document = req.body.document;
+ localCacheAPI.putInCache(key, document,
+  function (result) {
+    console.log("Written to cache under key "+key);
+    var responseBody = { "writtenToCacheUnderKey": key };
+    res.setHeader('Content-Type', 'application/json');
+    res.send(responseBody);   
+  });
+}); //post
