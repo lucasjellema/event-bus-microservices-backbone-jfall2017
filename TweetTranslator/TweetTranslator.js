@@ -5,20 +5,19 @@ var http = require('http'),
 translateGoogle = require('google-translate-api');
 ;
 
-//var localCacheAPI = require("./local-cache-api.js");
+var localCacheAPI = require("./local-cache-api.js");
 var localLoggerAPI = require("./local-logger-api.js");
 var eventBusPublisher = require("./EventPublisher.js");
 var eventBusConsumer = require("./EventConsumer.js");
 
 var workflowEventsTopic = "workflowEvents";
 var PORT = process.env.APP_PORT || 8099;
-var APP_VERSION = "0.1"
+var APP_VERSION = "0.1.1"
 var APP_NAME = "TweetTranslator"
 
 var TweetTranslatorActionType = "TranslateTweet";
 
 console.log("Running " + APP_NAME + " version " + APP_VERSION);
-
 
 var app = express();
 var server = http.createServer(app);
@@ -74,7 +73,16 @@ function translate(translatingTweet) {
       , translateGoogle(translatingTweet.text, { to: 'fr' })
       , translateGoogle(translatingTweet.text, { from: "en", to: 'nl' })
     ]).then((translations) => {
-      translations.forEach((val) => { translatingTweet.translations.push(val.text) });
+      localLoggerAPI.log("translate  - all translations are in :" + JSON.stringify(translations)+ ")"
+      , APP_NAME, "info");
+        
+      translations.forEach((val) => { translatingTweet.translations.push(val.text); 
+        localLoggerAPI.log("translate - push translated text :" + val.text + ")"
+        , APP_NAME, "info");
+     });
+     localLoggerAPI.log("translate - resolve :)"
+     , APP_NAME, "info");
+ 
       resolve(translatingTweet);
     }) //then
   })//promise
@@ -108,13 +116,13 @@ function handleWorkflowEvent(eventMessage) {
             localLoggerAPI.log("handleWorkflowEvent : conditions Satisfied "
               , APP_NAME, "info");
             var workflowDocument;
-            localCacheAPI.getFromCache(event.workflowConversationIdentifier, function (document) {
-              localLoggerAPI.log("handleWorkflowEvent : workflow slip from cache " + JSON.stringify(document)
-                , APP_NAME, "info");
-              console.log("Workflow document retrieved from cache");
-              var workflowDocument = document;
-              // this happens  asynchronously; right now we do not actually use the retrieved document. It does work.       
-            });
+            // localCacheAPI.getFromCache(event.workflowConversationIdentifier, function (document) {
+            //   localLoggerAPI.log("handleWorkflowEvent : workflow slip from cache " + JSON.stringify(document)
+            //     , APP_NAME, "info");
+            //   console.log("Workflow document retrieved from cache");
+            //   var workflowDocument = document;
+            //   // this happens  asynchronously; right now we do not actually use the retrieved document. It does work.       
+            // });
             // if satisfied, then translate tweet
             localLoggerAPI.log("handleWorkflowEvent : go enter translate promise "
             , APP_NAME, "info");
@@ -145,10 +153,10 @@ function handleWorkflowEvent(eventMessage) {
                   , APP_NAME, "info");
 
                 // PUT Workflow Document back  in Cache under workflow event identifier
-                localCacheAPI.putInCache(event.workflowConversationIdentifier, event,
-                  function (result) {
-                    console.log("store workflowevent plus routing slip in cache under key " + event.workflowConversationIdentifier + ": " + JSON.stringify(result));
-                  });
+                // localCacheAPI.putInCache(event.workflowConversationIdentifier, event,
+                //   function (result) {
+                //     console.log("store workflowevent plus routing slip in cache under key " + event.workflowConversationIdentifier + ": " + JSON.stringify(result));
+                //   });
               }// acted
             })// then
           }
@@ -190,3 +198,4 @@ function actionWithIdHasStatusAndResult(actions, id, status, result) {
   return false;
 }//actionWithIdHasStatusAndResult
 
+setTimeout( () => {localLoggerAPI.log("Running " + APP_NAME + " version " + APP_VERSION, APP_NAME, "info")},2500);
