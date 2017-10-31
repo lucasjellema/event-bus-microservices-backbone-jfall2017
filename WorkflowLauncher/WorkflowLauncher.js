@@ -8,7 +8,7 @@ var workflowEventsTopic = "workflowEvents";
 // please create Kafka Topic before using this application in the VM running Kafka
 // kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic workflowEvents
 
-var APP_VERSION = "0.9.1"
+var APP_VERSION = "0.9.2"
 var APP_NAME = "WorkflowLauncher"
 
 var workflowTemplateCacheKey = "oracle-code-tweet-processor-workflow-template";

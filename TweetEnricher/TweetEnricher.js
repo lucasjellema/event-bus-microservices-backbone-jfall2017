@@ -109,17 +109,22 @@ function handleWorkflowEvent(eventMessage) {
     if (acted) {
       event.updateTimeStamp = new Date().getTime();
       event.lastUpdater = APP_NAME;
-      // publish event
-      eventBusPublisher.publishEvent('OracleCodeTwitterWorkflow' + event.updateTimeStamp,event, workflowEventsTopic);
-
-      localLoggerAPI.log("Enriched Tweet  - (workflowConversationIdentifier:" + event.workflowConversationIdentifier + ")"
-        , APP_NAME, "info");
 
       // PUT Workflow Document back  in Cache under workflow event identifier
       localCacheAPI.putInCache(event.workflowConversationIdentifier, event,
         function (result) {
           console.log("store workflowevent plus routing slip in cache under key " + event.workflowConversationIdentifier + ": " + JSON.stringify(result));
         });
+
+      setTimeout(() => {
+        // publish event
+        eventBusPublisher.publishEvent('OracleCodeTwitterWorkflow' + event.updateTimeStamp, event, workflowEventsTopic);
+        localLoggerAPI.log("Enriched Tweet  - (workflowConversationIdentifier:" + event.workflowConversationIdentifier + ")"
+          , APP_NAME, "info");
+      }
+        , 3200
+      );
+
     }// acted
   }// if actions
 }// handleWorkflowEvent
