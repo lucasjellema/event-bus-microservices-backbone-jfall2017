@@ -9,7 +9,7 @@ var eventBusConsumer = require("./EventConsumer.js");
 
 var workflowEventsTopic = "workflowEvents";
 var PORT = process.env.APP_PORT || 8096;
-var APP_VERSION = "0.8"
+var APP_VERSION = "0.8.2"
 var APP_NAME = "TweetBoard"
 
 var TweetBoardCaptureActionType = "TweetBoardCapture";
@@ -75,8 +75,8 @@ function handleWorkflowEvent(eventMessage) {
     localCacheAPI.getFromCache(tweetBoardDocumentKey, function (doc) {
       console.log("tweetboard document retrieved from cache");
       // what if document does not yet exist? initialize it!
-      if (!doc || doc==null) {
-        doc = {"tweets":[]};
+      if (!doc || doc == null) {
+        doc = { "tweets": [] };
       }
       for (i = 0; i < event.actions.length; i++) {
         var action = event.actions[i];
@@ -122,14 +122,21 @@ function handleWorkflowEvent(eventMessage) {
 
         event.updateTimeStamp = new Date().getTime();
         event.lastUpdater = APP_NAME;
-      // publish event
-      eventBusPublisher.publishEvent('OracleCodeTwitterWorkflow' + event.updateTimeStamp,event, workflowEventsTopic);
-
         // put tweetboard document in the cache
         localCacheAPI.putInCache(tweetBoardDocumentKey, doc,
           function (result) {
             console.log("stored tweetboard document cache under key " + tweetBoardDocumentKey + ": " + JSON.stringify(result));
           });
+
+        setTimeout(() => {
+
+          // publish event
+          eventBusPublisher.publishEvent('OracleCodeTwitterWorkflow' + event.updateTimeStamp, event, workflowEventsTopic);
+        }
+          , 1900
+        );
+
+
 
       }// acted
     });//getFromCache
