@@ -10,7 +10,7 @@ var eventBusConsumer = require("./EventConsumer.js");
 
 var workflowEventsTopic = "workflowEvents";
 var PORT = process.env.APP_PORT || 8091;
-var APP_VERSION = "0.8"
+var APP_VERSION = "0.8.1"
 var APP_NAME = "TweetValidator"
 
 console.log("Running TweetValidator version " + APP_VERSION);
@@ -61,24 +61,24 @@ function validateTweet(tweet) {
   outcome.result = "OK";
   outcome.motivation = "perfectly ok tweet according to our current set of rules";
   var valid = true;
-  var reason="Not OK because:";
+  var reason = "Not OK because:";
   console.log("validate tweet " + JSON.stringify(tweet));
   // if tweet is retweet, then no good
   if (tweet.text.startsWith("RT")) {
-     valid = false;
-     reason= reason + "Retweets are not accepted. ";
+    valid = false;
+    reason = reason + "Retweets are not accepted. ";
   }
   if (tweet.author == "johndoe" || tweet.author == "john.doe") {
-     valid = false;
-     reason= reason + "No fake authors (John Doe is not acceptable). ";
+    valid = false;
+    reason = reason + "No fake authors (John Doe is not acceptable). ";
   }
-  if (tweet.text.indexOf("Trump ") > -1 ||tweet.text.toLowerCase().indexOf("brexit")>-1||tweet.text.toLowerCase().indexOf("catalonia")>-1) {
-     valid = false;
-     reason= reason + "No Political Statements are condoned today. ";
+  if (tweet.text.indexOf("Trump ") > -1 || tweet.text.toLowerCase().indexOf("brexit") > -1 || tweet.text.toLowerCase().indexOf("catalonia") > -1) {
+    valid = false;
+    reason = reason + "No Political Statements are condoned today. ";
   }
   if (!valid) {
     outcome.result = "NOK";
-    outcome.motivation = reason;    
+    outcome.motivation = reason;
   }
   return outcome;
 }
@@ -133,14 +133,22 @@ function handleWorkflowEvent(eventMessage) {
     if (acted) {
       event.updateTimeStamp = new Date().getTime();
       event.lastUpdater = APP_NAME;
-      // publish event
-      eventBusPublisher.publishEvent('OracleCodeTwitterWorkflow' + event.updateTimeStamp,event, workflowEventsTopic);
 
       // PUT Workflow Document back  in Cache under workflow event identifier
       localCacheAPI.putInCache(event.workflowConversationIdentifier, event,
         function (result) {
           console.log("store workflowevent plus routing slip in cache under key " + event.workflowConversationIdentifier + ": " + JSON.stringify(result));
         });
+
+      setTimeout(() => {
+
+        // publish event
+        eventBusPublisher.publishEvent('OracleCodeTwitterWorkflow' + event.updateTimeStamp, event, workflowEventsTopic);
+      }
+        , 2200
+      );
+
+
     }// acted
   }// if actions
 }// handleWorkflowEvent
