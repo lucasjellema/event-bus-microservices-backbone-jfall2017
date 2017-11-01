@@ -8,7 +8,7 @@ var workflowEventsTopic = "workflowEvents";
 // please create Kafka Topic before using this application in the VM running Kafka
 // kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic workflowEvents
 
-var APP_VERSION = "0.9.2"
+var APP_VERSION = "0.9.3"
 var APP_NAME = "WorkflowLauncher"
 
 var workflowTemplateCacheKey = "oracle-code-tweet-processor-workflow-template";
@@ -18,6 +18,8 @@ eventBusConsumer.registerEventHandler(workflowEventsTopic, handleWorkflowEvent);
 
 console.log("Running " + APP_NAME + " version " + APP_VERSION);
 
+localLoggerAPI.log(`Initialized and running: ${APP_NAME} - version ${APP_VERSION}`
+, APP_NAME, "info");
 
 // consume local workflowEvents from Kafka and produce RoutingSlip events for new workflow instances triggered by these events
 // Routingslip is based on the workflow template retrieved from the cache
@@ -26,7 +28,7 @@ function handleWorkflowEvent(eventMessage) {
   console.log("received message", eventMessage);
   if ("NewTweetEvent" == eventMessage.key) {
     console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
-
+    try {
     localCacheAPI.getFromCache(workflowTemplateCacheKey, function (value) {
     
       localLoggerAPI.log("Retrieved workflowTemplate from cache under key  " + workflowTemplateCacheKey
@@ -56,6 +58,11 @@ function handleWorkflowEvent(eventMessage) {
           console.log("store workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + ": " + JSON.stringify(result));
         });
       }) //getFromCache
+    } catch (err) {
+      localLoggerAPI.log("Exception when getting workflow template from cache "+err
+      , APP_NAME, "error");
+
+    }
   }//if 
 
 }// handleWorkflowEvent
