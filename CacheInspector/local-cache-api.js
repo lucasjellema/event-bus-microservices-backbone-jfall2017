@@ -1,6 +1,8 @@
 var request = require('request')
     ;
 var localLoggerAPI = require("./local-logger-api.js");
+var APP_VERSION = "0.8.2"
+var APP_NAME = "CacheInspector"
 
 
 //this module talks to a locally running Redis Cache
