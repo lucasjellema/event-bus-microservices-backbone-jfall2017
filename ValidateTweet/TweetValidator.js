@@ -10,7 +10,7 @@ var eventBusConsumer = require("./EventConsumer.js");
 
 var workflowEventsTopic = "workflowEvents";
 var PORT = process.env.APP_PORT || 8091;
-var APP_VERSION = "0.8.1"
+var APP_VERSION = "0.8.2"
 var APP_NAME = "TweetValidator"
 
 console.log("Running TweetValidator version " + APP_VERSION);
@@ -102,8 +102,8 @@ function handleWorkflowEvent(eventMessage) {
       var action = event.actions[i];
       // find action of type ValidateTweet
       if ("ValidateTweet" == action.type) {
-        // check conditions
-        if ("new" == action.status) {
+        // check status and conditions
+        if ("new" == action.status && conditionsSatisfied(action, event.actions)) {
           var workflowDocument;
           localCacheAPI.getFromCache(event.workflowConversationIdentifier, function (document) {
             console.log("Workflow document retrieved from cache");
@@ -152,3 +152,31 @@ function handleWorkflowEvent(eventMessage) {
     }// acted
   }// if actions
 }// handleWorkflowEvent
+
+
+function conditionsSatisfied(action, actions) {
+  var satisfied = true;
+  // verify if conditions in action are methodName(params) {
+  //   example action: {
+  //   "id": "CaptureToTweetBoard"
+  // , "type": "TweetBoardCapture"
+  // , "status": "new"  // new, inprogress, complete, failed
+  // , "result": "" // for example OK, 0, 42, true
+  // , "conditions": [{ "action": "EnrichTweetWithDetails", "status": "complete", "result": "OK" }]
+  for (i = 0; i < action.conditions.length; i++) {
+    var condition = action.conditions[i];
+    if (!actionWithIdHasStatusAndResult(actions, condition.action, condition.status, condition.result)) {
+      satisfied = false;
+      break;
+    }
+  }//for
+  return satisfied;
+}//conditionsSatisfied
+
+function actionWithIdHasStatusAndResult(actions, id, status, result) {
+  for (i = 0; i < actions.length; i++) {
+    if (actions[i].id == id && actions[i].status == status && actions[i].result == result)
+      return true;
+  }//for
+  return false;
+}//actionWithIdHasStatusAndResult
