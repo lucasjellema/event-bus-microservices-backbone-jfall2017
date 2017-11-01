@@ -12,7 +12,7 @@ var eventBusConsumer = require("./EventConsumer.js");
 
 var workflowEventsTopic = "workflowEvents";
 var PORT = process.env.APP_PORT || 8099;
-var APP_VERSION = "0.1.1"
+var APP_VERSION = "0.1.2"
 var APP_NAME = "TweetTranslator"
 
 var TweetTranslatorActionType = "TranslateTweet";
@@ -68,21 +68,19 @@ function translate(translatingTweet) {
   return new Promise((resolve, reject) => {
     translatingTweet.translations = [];
     Promise.all([
-      translateGoogle(translatingTweet.text, { to: 'de' })
-      , translateGoogle(translatingTweet.text, { to: 'es' })
-      , translateGoogle(translatingTweet.text, { to: 'fr' })
+      translateGoogle(translatingTweet.text, { from: "en",to: 'de' })
+      , translateGoogle(translatingTweet.text, { from: "en",to: 'es' })
+      , translateGoogle(translatingTweet.text, { from: "en",to: 'fr' })
       , translateGoogle(translatingTweet.text, { from: "en", to: 'nl' })
     ]).then((translations) => {
-      localLoggerAPI.log("translate  - all translations are in :" + JSON.stringify(translations)+ ")"
-      , APP_NAME, "info");
-        
-      translations.forEach((val) => { translatingTweet.translations.push(val.text); 
-        localLoggerAPI.log("translate - push translated text :" + val.text + ")"
+      localLoggerAPI.log("translate  - all translations are in :" + JSON.stringify(translations) + ")"
         , APP_NAME, "info");
-     });
-     localLoggerAPI.log("translate - resolve :)"
-     , APP_NAME, "info");
- 
+
+      translations.forEach((val) => {
+        translatingTweet.translations.push(val.text);
+      });
+      localLoggerAPI.log("translate - resolve :)"
+        , APP_NAME, "info");
       resolve(translatingTweet);
     }) //then
   })//promise
@@ -96,9 +94,6 @@ function handleWorkflowEvent(eventMessage) {
   var event = JSON.parse(eventMessage.value);
   console.log("received message", eventMessage);
   console.log("actual event: " + JSON.stringify(event));
-  localLoggerAPI.log("handleWorkflowEvent :" + event.workflowConversationIdentifier + ")"
-    , APP_NAME, "info");
-
   // event we expect is of type workflowEvents
   // we should do something with this event if it contains an action (actions[].type=TweetTranslatorActionType where status ="new" and conditions are satisfied)
   try {
@@ -108,37 +103,27 @@ function handleWorkflowEvent(eventMessage) {
         var action = event.actions[i];
         // find action of type TranslateTweet
         if (TweetTranslatorActionType == action.type) {
-          localLoggerAPI.log("handleWorkflowEvent : action type was found " + action.type
-            , APP_NAME, "info");
           // check conditions
           if ("new" == action.status
             && conditionsSatisfied(action, event.actions)) {
-            localLoggerAPI.log("handleWorkflowEvent : conditions Satisfied "
+            var currentAction = action;
+              localLoggerAPI.log("handleWorkflowEvent : "
               , APP_NAME, "info");
             var workflowDocument;
-            // localCacheAPI.getFromCache(event.workflowConversationIdentifier, function (document) {
-            //   localLoggerAPI.log("handleWorkflowEvent : workflow slip from cache " + JSON.stringify(document)
-            //     , APP_NAME, "info");
-            //   console.log("Workflow document retrieved from cache");
-            //   var workflowDocument = document;
-            //   // this happens  asynchronously; right now we do not actually use the retrieved document. It does work.       
-            // });
-            // if satisfied, then translate tweet
-            localLoggerAPI.log("handleWorkflowEvent : go enter translate promise "
-            , APP_NAME, "info");
+            localCacheAPI.getFromCache(event.workflowConversationIdentifier, function (document) {
+              console.log("Workflow document retrieved from cache");
+              var workflowDocument = document;
+              // this happens  asynchronously; right now we do not actually use the retrieved document. It does work.       
+            });
 
             translate(event.payload).then((translatedTweet) => {
-              localLoggerAPI.log("handleWorkflowEvent : then translated " + JSON.stringify(translatedTweet)
-              , APP_NAME, "info");
-  
+
               event.payload = translatedTweet;
               // update action in event
-              action.status = 'complete';
-              action.result = 'OK';
+              currentAction.status = 'complete';
+              currentAction.result = 'OK';
               // add audit line
-              localLoggerAPI.log("handleWorkflowEvent : push to audit"
-              , APP_NAME, "info");
-  
+
               event.audit.push(
                 { "when": new Date().getTime(), "who": "TweetTranslator", "what": "update", "comment": "Tweet Translation Performed" }
               );
@@ -146,17 +131,23 @@ function handleWorkflowEvent(eventMessage) {
               if (acted) {
                 event.updateTimeStamp = new Date().getTime();
                 event.lastUpdater = APP_NAME;
-                // publish event
-                eventBusPublisher.publishEvent('OracleCodeTwitterWorkflow' + event.updateTimeStamp, event, workflowEventsTopic);
 
                 localLoggerAPI.log("Translated Tweet  - (workflowConversationIdentifier:" + event.workflowConversationIdentifier + ")"
                   , APP_NAME, "info");
 
                 // PUT Workflow Document back  in Cache under workflow event identifier
-                // localCacheAPI.putInCache(event.workflowConversationIdentifier, event,
-                //   function (result) {
-                //     console.log("store workflowevent plus routing slip in cache under key " + event.workflowConversationIdentifier + ": " + JSON.stringify(result));
-                //   });
+                localCacheAPI.putInCache(event.workflowConversationIdentifier, event,
+                  function (result) {
+                    console.log("store workflowevent plus routing slip in cache under key " + event.workflowConversationIdentifier + ": " + JSON.stringify(result));
+                  });
+                // publish event
+                setTimeout(() => {
+                  console.log("******** GO PUB WORKFLOW EVENT");
+                  eventBusPublisher.publishEvent('OracleCodeTwitterWorkflow' + event.updateTimeStamp, event, workflowEventsTopic);
+              }
+                  , 1500
+                );
+
               }// acted
             })// then
           }
@@ -198,4 +189,4 @@ function actionWithIdHasStatusAndResult(actions, id, status, result) {
   return false;
 }//actionWithIdHasStatusAndResult
 
-setTimeout( () => {localLoggerAPI.log("Running " + APP_NAME + " version " + APP_VERSION, APP_NAME, "info")},2500);
+setTimeout(() => { localLoggerAPI.log("Running " + APP_NAME + " version " + APP_VERSION, APP_NAME, "info") }, 2500);

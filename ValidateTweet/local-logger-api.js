@@ -15,6 +15,7 @@ localLoggerAPI.log = function (message, moduleName, loglevel) {
         "logLevel": loglevel
         , "module": moduleName
         , "message": message
+        , "timestamp": new Date().toLocaleString()
     }
     try {
     eventBusPublisher.publishEvent("logEntry", JSON.stringify(logEntry), logTopic);

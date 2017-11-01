@@ -1,6 +1,7 @@
 var kafka = require('kafka-node');
 
-var kafkaHost = process.env.KAFKA_HOST || "ubuntu";
+var kafkaHost = process.env.KAFKA_HOST || "192.168.188.102";
+
 var zookeeperPort = process.env.ZOOKEEPER_PORT || 2181;
 var Producer = kafka.Producer
 KeyedMessage = kafka.KeyedMessage;
