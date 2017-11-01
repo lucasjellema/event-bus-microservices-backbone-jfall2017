@@ -26,46 +26,56 @@ setTimeout(() => {
 // consume local workflowEvents from Kafka and produce RoutingSlip events for new workflow instances triggered by these events
 // Routingslip is based on the workflow template retrieved from the cache
 function handleWorkflowEvent(eventMessage) {
-  var event = JSON.parse(eventMessage.value);
-  console.log("received message", eventMessage);
-  if ("NewTweetEvent" == eventMessage.key) {
-    console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
-    try {
-      localCacheAPI.getFromCache(workflowTemplateCacheKey, function (value) {
+  localLoggerAPI.log(`handle workflow event : ${APP_NAME} - version ${APP_VERSION}`
+    , APP_NAME, "info")
+  try {
+    var event = JSON.parse(eventMessage.value);
+    console.log("received message", eventMessage);
+    if ("NewTweetEvent" == eventMessage.key) {
+      localLoggerAPI.log(`new Tweet Event is processed`
+      , APP_NAME, "info")
+      console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
+      try {
+        localCacheAPI.getFromCache(workflowTemplateCacheKey, function (value) {
 
-        localLoggerAPI.log("Retrieved workflowTemplate from cache under key  " + workflowTemplateCacheKey
-          + " content:" + JSON.stringify(value)
-          , APP_NAME, "info");
+          localLoggerAPI.log("Retrieved workflowTemplate from cache under key  " + workflowTemplateCacheKey
+            + " content:" + JSON.stringify(value)
+            , APP_NAME, "info");
 
-        console.log("Workflow template retrieved from cache under key " + workflowTemplateCacheKey);
-        // use either the template retrieved from the cache of the default template if the cache retrieval failed
-        var message = (value.workflowType) ? value : defaultMessage;
-        message.payload = event.tweet;
-        message.workflowConversationIdentifier = "OracleCodeTweetProcessor" + new Date().getTime();
-        message.audit.push({ "when": new Date().getTime(), "who": "WorkflowLauncher", "what": "creation", "comment": "initial creation of workflow" })
-        message.creationTimeStamp = new Date().getTime()
-        message.creator = "WorkflowLauncher";
-        eventBusPublisher.publishEvent(message.workflowConversationIdentifier, message, workflowEventsTopic);
+          console.log("Workflow template retrieved from cache under key " + workflowTemplateCacheKey);
+          // use either the template retrieved from the cache of the default template if the cache retrieval failed
+          var message = (value.workflowType) ? value : defaultMessage;
+          message.payload = event.tweet;
+          message.workflowConversationIdentifier = "OracleCodeTweetProcessor" + new Date().getTime();
+          message.audit.push({ "when": new Date().getTime(), "who": "WorkflowLauncher", "what": "creation", "comment": "initial creation of workflow" })
+          message.creationTimeStamp = new Date().getTime()
+          message.creator = "WorkflowLauncher";
+          eventBusPublisher.publishEvent(message.workflowConversationIdentifier, message, workflowEventsTopic);
 
-        localLoggerAPI.log("Initialized new workflow  for tweet " + message.payload.text + " by " + message.payload.author + " - (workflowConversationIdentifier:" + message.workflowConversationIdentifier + ")"
-          , APP_NAME, "info");
-        localLoggerAPI.log("Initialized new workflow OracleCodeTweetProcessor triggered by NewTweetEvent; stored workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + " - (workflowConversationIdentifier:"
-          + message.workflowConversationIdentifier + "; slip is based on workflow template " + message.workflowType + " version " + message.workflowVersion + ")"
-          , APP_NAME, "info");
+          localLoggerAPI.log("Initialized new workflow  for tweet " + message.payload.text + " by " + message.payload.author + " - (workflowConversationIdentifier:" + message.workflowConversationIdentifier + ")"
+            , APP_NAME, "info");
+          localLoggerAPI.log("Initialized new workflow OracleCodeTweetProcessor triggered by NewTweetEvent; stored workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + " - (workflowConversationIdentifier:"
+            + message.workflowConversationIdentifier + "; slip is based on workflow template " + message.workflowType + " version " + message.workflowVersion + ")"
+            , APP_NAME, "info");
 
 
-        // PUT Workflow Event in Cache under workflow event identifier
-        localCacheAPI.putInCache(message.workflowConversationIdentifier, message,
-          function (result) {
-            console.log("store workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + ": " + JSON.stringify(result));
-          });
-      }) //getFromCache
-    } catch (err) {
-      localLoggerAPI.log("Exception when getting workflow template from cache " + err
-        , APP_NAME, "error");
+          // PUT Workflow Event in Cache under workflow event identifier
+          localCacheAPI.putInCache(message.workflowConversationIdentifier, message,
+            function (result) {
+              console.log("store workflowevent plus routing slip in cache under key " + message.workflowConversationIdentifier + ": " + JSON.stringify(result));
+            });
+        }) //getFromCache
+      } catch (err) {
+        localLoggerAPI.log("Exception when getting workflow template from cache " + err
+          , APP_NAME, "error");
 
-    }
-  }//if 
+      }
+    }//if 
+  } catch (err) {
+    localLoggerAPI.log(`Exception while processing workflow event ${err}`
+      , APP_NAME, "error")
+
+  }
 
 }// handleWorkflowEvent
 
