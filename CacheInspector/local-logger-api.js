@@ -19,7 +19,7 @@ localLoggerAPI.log = function (message, moduleName, loglevel) {
     }
     try {
     eventBusPublisher.publishEvent("logEntry", JSON.stringify(logEntry), logTopic);
-    } catch (e) {}
+    } catch (e) { console.log("Logging failed with "+e)}
 }//log
 
 

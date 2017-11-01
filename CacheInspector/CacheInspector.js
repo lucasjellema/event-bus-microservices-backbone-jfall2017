@@ -6,14 +6,16 @@ var localCacheAPI = require("./local-cache-api.js");
 var localLoggerAPI = require("./local-logger-api.js");
 
 var PORT = process.env.APP_PORT || 8097;
-var APP_VERSION = "0.8.2"
+var APP_VERSION = "0.8.3"
 var APP_NAME = "CacheInspector"
 
 
 console.log("Running " + APP_NAME + "version " + APP_VERSION);
 setTimeout(() => {
+  try {
   localLoggerAPI.log(`Initialized and running: ${APP_NAME} - version ${APP_VERSION}`
     , APP_NAME, "info")
+  } catch (err) {console.error("Locallogging failed "+err)}
 }, 3500);
 
 
@@ -74,7 +76,7 @@ app.post('/cacheEntry', function (req, res) {
  localCacheAPI.putInCache(key, document,
   function (result) {
     console.log("Written to cache under key "+key);
-    var responseBody = { "writtenToCacheUnderKey": key };
+    var responseBody = { "writtenToCacheUnderKey": key , "result":  result};
     res.setHeader('Content-Type', 'application/json');
     res.send(responseBody);   
   });

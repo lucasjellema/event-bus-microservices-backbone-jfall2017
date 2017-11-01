@@ -9,7 +9,7 @@ var APP_NAME = "CacheInspector"
 
 var localCacheAPI = module.exports;
 var moduleName = "accs.localCacheAPI";
-var moduleVersion = "0.8.7";
+var moduleVersion = "0.8.8";
 var Redis = require("redis");
 
 var redisHost = process.env.REDIS_HOST || "192.168.99.100";

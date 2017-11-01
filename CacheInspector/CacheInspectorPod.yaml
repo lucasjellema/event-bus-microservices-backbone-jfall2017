@@ -24,6 +24,8 @@ spec:
       value: "redis-cache"
     - name: REDIS_PORT
       value: "6379"
+    - name: LOG_ENABLED
+      value: "true"
     ports:
     # containerPort is the port exposed by the container (where nodejs express api is listening)
     - containerPort: 8109
