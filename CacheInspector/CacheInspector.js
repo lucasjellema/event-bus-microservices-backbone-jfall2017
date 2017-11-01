@@ -3,13 +3,18 @@ var http = require('http'),
   express = require('express'),
   bodyParser = require('body-parser');
 var localCacheAPI = require("./local-cache-api.js");
+var localLoggerAPI = require("./local-logger-api.js");
 
 var PORT = process.env.APP_PORT || 8097;
-var APP_VERSION = "0.8.1"
+var APP_VERSION = "0.8.2"
 var APP_NAME = "CacheInspector"
 
 
 console.log("Running " + APP_NAME + "version " + APP_VERSION);
+setTimeout(() => {
+  localLoggerAPI.log(`Initialized and running: ${APP_NAME} - version ${APP_VERSION}`
+    , APP_NAME, "info")
+}, 3500);
 
 
 var app = express();
