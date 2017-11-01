@@ -8,7 +8,7 @@ var workflowEventsTopic = "workflowEvents";
 // please create Kafka Topic before using this application in the VM running Kafka
 // kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic workflowEvents
 
-var APP_VERSION = "0.9.3"
+var APP_VERSION = "0.9.4"
 var APP_NAME = "WorkflowLauncher"
 
 var workflowTemplateCacheKey = "oracle-code-tweet-processor-workflow-template";
@@ -32,8 +32,8 @@ function handleWorkflowEvent(eventMessage) {
     var event = JSON.parse(eventMessage.value);
     console.log("received message", eventMessage);
     if ("NewTweetEvent" == eventMessage.key) {
-      localLoggerAPI.log(`new Tweet Event is processed`
-      , APP_NAME, "info")
+      localLoggerAPI.log(`new Tweet Event will be processed`
+      , APP_NAME, "info");
       console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
       try {
         localCacheAPI.getFromCache(workflowTemplateCacheKey, function (value) {

@@ -9,6 +9,9 @@ var moduleName = "accs.localCacheAPI";
 var moduleVersion = "0.8.7";
 var Redis = require("redis");
 
+var localLoggerAPI = require("./local-logger-api.js");
+var APP_NAME = "WorkflowLauncher"
+
 var redisHost = process.env.REDIS_HOST || "192.168.99.100";
 var redisPort = process.env.REDIS_PORT || 30159;
 
@@ -33,6 +36,8 @@ var cacheAPIOptions = {
 localCacheAPI.getFromCache = function (key, callback) {
     if (callViaAPI) {
         try {
+            localLoggerAPI.log(`Try get document from cache inspector service with key  ${key}`
+            , APP_NAME, "info")
 
             cacheAPIOptions.path = "/cacheEntry?key=" + key;
             cacheAPIOptions.method = "GET";
@@ -45,6 +50,9 @@ localCacheAPI.getFromCache = function (key, callback) {
 
                 res.on("end", function () {
                     var body = Buffer.concat(chunks);
+                    localLoggerAPI.log(`Successfully retrieved doc with  ${key} from cacheinspector service ${body}`
+                    , APP_NAME, "info")
+
                     console.log(body.toString());
                     callback(JSON.parse(body));
                 });
@@ -52,6 +60,8 @@ localCacheAPI.getFromCache = function (key, callback) {
 
             req.end();
         } catch (err) {
+            localLoggerAPI.log(`ERROR in accessing cacheinspector  -exception ${e}`
+            , APP_NAME, "error")
             console.log("Exception : " + err)
         }
     } else {
@@ -59,13 +69,19 @@ localCacheAPI.getFromCache = function (key, callback) {
             console.log("get document from cache api with key " + key);
             redisClient.get(key, function (err, reply) {
                 if (err) {
+                    localLoggerAPI.log(`Failed to get document with  ${key} resulting in exception ${err}`
+                    , APP_NAME, "error")
                     console.error('ERROR in getting document from cache ' + err);
                     callback(null);
                 } else {
+                    localLoggerAPI.log(`Successfully retrieved doc with  ${key} ${reply}`
+                    , APP_NAME, "info")
                     callback(JSON.parse(reply));
                 }//else
             });//get
         } catch (e) {
+            localLoggerAPI.log(`ERROR in accessing redis  -exception ${e}`
+            , APP_NAME, "error")
             console.error('ERROR i  n accessing redis ' + e);
             callback(null);
         }
