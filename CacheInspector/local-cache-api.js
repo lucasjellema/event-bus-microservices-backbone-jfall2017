@@ -1,5 +1,6 @@
 var request = require('request')
     ;
+var localLoggerAPI = require("./local-logger-api.js");
 
 
 //this module talks to a locally running Redis Cache
