@@ -12,14 +12,23 @@ var client;
 var APP_VERSION = "0.1.3"
 var APP_NAME = "EventBusConsumer"
 
+var consumerOptions = {
+  host: kafkaHost + ':' + zookeeperPort,
+  groupId: 'consume-newtweets-for-workflowlauncher',
+  sessionTimeout: 15000,
+  protocol: ['roundrobin'],
+  fromOffset: 'earliest' // equivalent of auto.offset.reset valid values are 'none', 'latest', 'earliest'
+};
+
+
 
 console.log("Initialized module " + APP_NAME + "version " + APP_VERSION);
 
-
+// no longer called = replace with code in registerEventHandler
 function initializeKafkaConsumer(attempt) {
   try {
     console.log("Try to initialize Kafka Client and Consumer, attempt " + attempt);
-    var client = new kafka.Client(kafkaHost + ":"+zookeeperPort+"/")
+    var client = new kafka.Client(kafkaHost + ":" + zookeeperPort + "/")
     console.log("created client for " + kafkaHost);
     consumer = new Consumer(
       client,
@@ -37,22 +46,36 @@ function initializeKafkaConsumer(attempt) {
   }
 }//initializeKafkaConsumer
 
-initializeKafkaConsumer(1);
+//  initializeKafkaConsumer(1);
 
 
 var eventConsumer = module.exports;
+var consumerGroup;
+
+eventConsumer.registerEventHandler = function (topic, handler) {
+  var topics = [topic];
+  consumerGroup = new kafka.ConsumerGroup(Object.assign({ id: 'consumer' + uuidv4() }, consumerOptions), topics);
+  consumerGroup.on('error', onError);
+  consumerGroup.on('message', handler);
+  console.log("Kafka Consumer - added message handler and added topic");
+}
+
+function onError(error) {
+  console.error(error);
+  console.error(error.stack);
+}
+
+process.once('SIGINT', function () {
+  async.each([consumerGroup], function (consumer, callback) {
+    consumer.close(true, callback);
+  });
+});
 
 
-eventConsumer.registerEventHandler = function ( topic, handler) {
-    consumer.on('message', handler);
-    consumer.on('error', function (err) {
-      console.log("error in creation of Kafka consumer " + JSON.stringify(err));
-      console.log("Try again in 5 seconds");
-      setTimeout(initializeKafkaConsumer, 5000, attempt + 1);
-    });
-    consumer.addTopics([
-      { topic:topic, partition: 0, offset: 0 }
-    ], () => console.log("topic added: " + topic));
-    console.log("Kafka Consumer - added message handler and added topic");
-
+//from https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 }
