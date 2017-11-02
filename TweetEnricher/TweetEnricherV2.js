@@ -9,7 +9,7 @@ var eventBusConsumer = require("./EventConsumer.js");
 
 var workflowEventsTopic = "workflowEvents";
 var PORT = process.env.APP_PORT || 8098;
-var APP_VERSION = "0.27"
+var APP_VERSION = "0.28"
 var APP_NAME = "TweetEnricher"
 
 var TweetEnricherActionType = "EnrichTweet";
@@ -69,7 +69,9 @@ function enrich(tweet) {
      {"original":" nljug ","replacement":" nljug (aka Dutch Java User Group) "  }
     ,{"original":" JSON ","replacement":" JSON (aka JavaScript Object Notation) "  }
     ,{"original":" Ede ","replacement":" Ede (Gelderland, The Netherlands) "  }
-    ];
+    ,{"original":" API ","replacement":" API (Application Programmatic Interface fka Service) "  }
+    ,{"original":" EE4J ","replacement":" EE4J (Eclipse Enterprise for Java, fka Java EE fka JEE fka J2EE) "  }
+  ];
   enrichments.forEach((val)=> { tweet.text= tweet.text.replace(new RegExp(val.original, 'ig'), val.replacement)})
   
   tweet.enrichment = "Lots of Money";
