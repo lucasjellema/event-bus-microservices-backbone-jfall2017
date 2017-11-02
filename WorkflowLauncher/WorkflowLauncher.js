@@ -26,21 +26,14 @@ setTimeout(() => {
 // consume local workflowEvents from Kafka and produce RoutingSlip events for new workflow instances triggered by these events
 // Routingslip is based on the workflow template retrieved from the cache
 function handleWorkflowEvent(eventMessage) {
-  localLoggerAPI.log(`handle workflow event : ${APP_NAME} - version ${APP_VERSION}`
-    , APP_NAME, "info")
   try {
     var event = JSON.parse(eventMessage.value);
     console.log("received message", eventMessage);
     if ("NewTweetEvent" == eventMessage.key) {
-      localLoggerAPI.log(`new Tweet Event will be processed`
-      , APP_NAME, "info");
       console.log("A new tweet event has reached us. Time to act and publish a corresponding workflow event");
       try {
         localCacheAPI.getFromCache(workflowTemplateCacheKey, function (value) {
 
-          localLoggerAPI.log("Retrieved workflowTemplate from cache under key  " + workflowTemplateCacheKey
-            + " content:" + JSON.stringify(value)
-            , APP_NAME, "info");
 
           console.log("Workflow template retrieved from cache under key " + workflowTemplateCacheKey);
           // use either the template retrieved from the cache of the default template if the cache retrieval failed

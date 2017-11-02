@@ -36,9 +36,6 @@ var cacheAPIOptions = {
 localCacheAPI.getFromCache = function (key, callback) {
     if (callViaAPI) {
         try {
-            localLoggerAPI.log(`Try get document from cache inspector service with key  ${key}`
-            , APP_NAME, "info")
-
             cacheAPIOptions.path = "/cacheEntry?key=" + key;
             cacheAPIOptions.method = "GET";
             var req = http.request(cacheAPIOptions, function (res) {
@@ -50,8 +47,6 @@ localCacheAPI.getFromCache = function (key, callback) {
 
                 res.on("end", function () {
                     var body = Buffer.concat(chunks);
-                    localLoggerAPI.log(`Successfully retrieved doc with  ${key} from cacheinspector service ${body}`
-                    , APP_NAME, "info")
 
                     console.log(body.toString());
                     callback(JSON.parse(body));
@@ -74,8 +69,6 @@ localCacheAPI.getFromCache = function (key, callback) {
                     console.error('ERROR in getting document from cache ' + err);
                     callback(null);
                 } else {
-                    localLoggerAPI.log(`Successfully retrieved doc with  ${key} ${reply}`
-                    , APP_NAME, "info")
                     callback(JSON.parse(reply));
                 }//else
             });//get
