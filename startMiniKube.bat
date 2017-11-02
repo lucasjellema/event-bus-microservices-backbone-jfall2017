@@ -35,6 +35,8 @@ cd ..
 cd WorkflowLauncher
 REM run workflow launcher locally instead of inside Kubernetes (primarily because of instability)
 REM kubectl create -f WorkflowLauncherPod.yaml  
+REM try to use a deployment with 3 replicas - see of that can provide availability
+kubectl create -f WorkflowLauncherDeployment.yaml
 
 cd ..
 cd TweetBoard
