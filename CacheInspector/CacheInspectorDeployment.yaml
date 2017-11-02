@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-inspector-service
+  labels:
+    run: cache-inspector-service
+spec:
+  type: NodePort
+  ports:
+    # The port that this service should serve on.
+  - port: 8109
+    # port listened at inside the container
+    targetPort: 8109
+    protocol: TCP
+    name: http
+  selector:
+    run: cache-inspector  
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cache-inspector
+  labels:
+    run: cache-inspector
+spec:
+  replicas: 3 # tells deployment to run 3 pods matching the template
+  selector:
+    matchLabels:
+      run: cache-inspector
+  template: # create pods using pod definition in this template
+    metadata:
+      # unlike pod-nginx.yaml, the name is not included in the meta data as a unique name is
+      # generated from the deployment name
+      labels:
+          run: cache-inspector
+    spec:
+      containers:
+      - name: cache-inspector
+        # get latest version of image
+        image: lucasjellema/node-app-runner
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: GIT_URL
+          value: "https://github.com/lucasjellema/event-bus-microservices-backbone-jfall2017"
+        - name: APP_PORT
+          value: "8109"
+        - name: APP_HOME
+          value: "CacheInspector"
+        - name: APP_STARTUP
+          value: "CacheInspector.js"
+        - name: REDIS_HOST
+          value: "redis-cache"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: LOG_ENABLED
+          value: "true"
+        ports:
+        # containerPort is the port exposed by the container (where nodejs express api is listening)
+        - containerPort: 8109
